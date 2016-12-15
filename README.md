@@ -1,3 +1,0 @@
-# Linux Hub for Workroom project
-
-Soon to be transferred here from our private repositories...

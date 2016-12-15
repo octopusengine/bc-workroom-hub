@@ -1,0 +1,2 @@
+-r gateway/requirements.txt
+-r ledstrip/requirements.txt

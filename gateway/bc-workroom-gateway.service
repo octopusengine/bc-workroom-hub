@@ -1,0 +1,13 @@
+[Unit]
+Description=BigClown gateway between Base unit connected via USB and MQTT broker
+After=network.target
+Requires=mosquitto.service
+
+[Service]
+ExecStart=/usr/bin/bc-workroom-gateway -d /dev/stm32-ACM0
+User=bigclown
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

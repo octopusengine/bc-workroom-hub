@@ -1,0 +1,13 @@
+[Unit]
+Description=Blynk plugin for BigClown Workroom Project
+After=network.target
+Requires=mosquitto.service bc-workroom-gateway.service
+
+[Service]
+ExecStart=/usr/bin/bc-workroom-blynk
+User=bigclown
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

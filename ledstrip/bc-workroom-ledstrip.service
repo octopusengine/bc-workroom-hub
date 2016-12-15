@@ -1,0 +1,13 @@
+[Unit]
+Description=BigClown plugin for controlling color of a LED strip
+After=network.target
+Requires=mosquitto.service bc-workroom-gateway.service
+
+[Service]
+ExecStart=/usr/bin/bc-workroom-ledstrip
+User=bigclown
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
