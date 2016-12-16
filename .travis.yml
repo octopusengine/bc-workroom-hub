@@ -1,0 +1,18 @@
+sudo: false
+language: python
+python: 3.4
+env:
+  global:
+    - secure: IHQWNbA14MwRl32K7sQW19P9eJRS4EWc6vFRazfW/O2vwZBIxSPfBRn/cA8jg0SqFhFHb5a+prFUwdbaYUMcqIf5hqGe2Lwsf7Jxm22fbH8GihUfbVv74H8MiNNaOUCYWfavOaaARZ3E/notiQkRmKdWcZ6HCg2GDgCpvfX+ULS74GT3R4WeVYqON7KLwnv7FR0y4Qk5DDgsC6uy15pdJf0KGsj8tji9XHK73FzJgGSpUEnQjUjQpng+7cHQ1Mn7UYpzzeUY4xwJdWM1LSqwjaVlrgLPMKuUHirj2Al/SZmV6DzgWsacloS/yHIlwlTpQ8lqaytLD0fBwGTOQ9iQMmVVQwgOTsogRcAEpvxbicYL77ulRHNK52bemIMUKdUspertW68CMN77lgzkFH2gN8JSSe6jO8sjRl7v1swB+yvU9q/C3a86Au3qz1QIPxHTTG81gBvAh5Pu/O4LOT24XGF9pFOgTJ0RybPPwVBByBITLfBarqY4x6Yr54Y8Qm1+AISPiU+mvXzykFqbXr4u1Lmz4MGkQCEuwtEUcXQG0s92hE+/5ces1yyDSyK37IFbmtxfOzkKaOW+nxGGwRMMkeeRHRzD+WvT5/71gdawDMREzGp4sGmbnYmPZOCPJM75KYJIdpSKncL23+tIIieJYG363QWPe8Zyq9k8dwF8894=  # GPG_PASS
+install:
+  - gem install --no-ri --no-rdoc fpm
+script:
+  - true  # we don't have any tests yet :(
+after_success:
+  - ./script/build-deb
+deploy:
+  provider: script
+  script: script/travis-deploy
+  skip_cleanup: true
+  on:
+    tags: true

@@ -1,0 +1,17 @@
+#!/bin/sh
+# vim: set ts=4:
+set -eu
+
+cd "$(dirname "$0")/.."
+. script/utils.sh
+
+if [ -z "${encrypted_79b39c5dae1f_key:-}" ]; then
+	ewarn 'Decryption key is not available, skipping deploy.'; exit 0
+fi
+
+einfo 'Decrypting .deploykey...'
+openssl aes-256-cbc \
+	-K "$encrypted_79b39c5dae1f_key" \
+	-iv "$encrypted_79b39c5dae1f_iv" \
+	-in .deploykey.enc -out .deploykey -d
+chmod 600 .deploykey
