@@ -1,7 +1,7 @@
 [Unit]
 Description=BigClown gateway between Base unit connected via USB and MQTT broker
 After=network.target
-Requires=mosquitto.service
+Requires=mosquitto.service stm32-ACM0.device
 
 [Service]
 ExecStart=/usr/bin/bc-workroom-gateway -d /dev/stm32-ACM0
