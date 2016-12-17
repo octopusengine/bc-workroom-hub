@@ -26,7 +26,7 @@ if [ -z "${PKG_VERSION:-}" ]; then
 	git_version="$(git describe --tags --exact-match --match 'v*')" || {
 		die '$PKG_VERSION is not set and could not determine version from git!'
 	}
-	PKG_VERSION="${git_version:1}"  # strip first char
+	PKG_VERSION="${git_version#v}"
 fi
 
 
