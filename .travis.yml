@@ -7,8 +7,6 @@ env:
 install:
   - gem install --no-ri --no-rdoc fpm
 script:
-  - true  # we don't have any tests yet :(
-after_success:
   - ./script/build-deb
 deploy:
   provider: script
