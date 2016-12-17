@@ -1,0 +1,25 @@
+= Linux Hub for Workroom project
+
+TODO
+
+
+== Installation
+
+=== On Debian/Raspbian Jessie
+
+[source, sh]
+----
+# Add our repository
+echo "deb https://repo.bigclown.com/debian jessie main" | sudo tee /etc/apt/sources.list.d/bigclown.list
+wget -O - | sudo apt-key add -
+
+# Install packages
+sudo apt-get update
+sudo apt-get install bc-workroom-ledstrip bc-workroom-blynk
+----
+
+
+== License
+
+This project is licensed under http://opensource.org/licenses/MIT/[MIT License].
+For the full text of the license, see the link:LICENSE[LICENSE] file.
