@@ -22,11 +22,9 @@ LIB_DIR='/usr/lib/bigclown'
 BLYNK_DEST_DIR="$LIB_DIR/bc-workroom-blynk"
 
 if [ -z "${PKG_VERSION:-}" ]; then
-	# If git HEAD is tagged as v*, then it returns name of the tag.
-	git_version="$(git describe --tags --exact-match --match 'v*')" || {
+	PKG_VERSION="$(repo_version)" || {
 		die '$PKG_VERSION is not set and could not determine version from git!'
 	}
-	PKG_VERSION="${git_version#v}"
 fi
 
 
