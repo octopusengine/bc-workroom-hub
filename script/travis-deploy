@@ -29,4 +29,4 @@ rsync --verbose \
 
 einfo 'Rebuilding package repository'
 # Note: GPG_PASS is encrypted in .travis.yml
-ssh -i .deploykey "$DEPLOY_REMOTE" "rebuild-repo '$GPG_PASS'"
+ssh -i .deploykey "$DEPLOY_REMOTE" GPG_PASS="$GPG_PASS" rebuild-repo
