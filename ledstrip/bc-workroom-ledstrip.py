@@ -179,14 +179,14 @@ def mgtt_on_message(client, userdata, msg):
         try:
             userdata['temperature'] = float(payload['temperature'][0])
             userdata['temperature-ts'] = now
-        except ValueError as e:
+        except (TypeError, ValueError) as e:
             log.error('Invalid temperature: %s', e)
 
     elif msg.topic == 'nodes/remote/humidity-sensor/i2c0-40':
         try:
             userdata['relative-humidity'] = float(payload['relative-humidity'][0])
             userdata['relative-humidity-ts'] = now
-        except ValueError as e:
+        except (TypeError, ValueError) as e:
             log.error('Invalid relative-humidity: %s', e)
 
     elif msg.topic == 'plugin/led-strip/config':
