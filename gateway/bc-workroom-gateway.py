@@ -40,7 +40,9 @@ LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
 def mgtt_on_connect(client, userdata, flags, rc):
     log.info('Connected to MQTT broker with (code %s)', rc)
-    client.subscribe(userdata['base_topic'] + 'base/led-strip/-/set')
+
+    for subtopic in ('base/+/+/+', 'base/+/+/+/+'):
+        client.subscribe(userdata['base_topic'] + subtopic)
 
 
 def mgtt_on_message(client, userdata, msg):
