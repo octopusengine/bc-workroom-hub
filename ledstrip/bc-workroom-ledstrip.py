@@ -40,7 +40,7 @@ DEFAULT_PLUGIN_CONFIG = {
         {'relative-humidity': {'to': 30}, 'color': [255, 255, 0, 0]},
         {'temperature': {'from': 26}, 'color': [255, 0, 0, 0]},
         {'temperature': {'to': 22}, 'color': [0, 0, 255, 0]},
-        {'color': [255, 255, 255, 255]},
+        {'color': [0, 0, 0, 255]},
     ],
     'brightness': 255,
 }
