@@ -77,7 +77,7 @@ build_common() {
 		--depends adduser \
 		--depends udev \
 		--depends mosquitto \
-		40-bc-workroom-stm32.rules=/lib/udev/rules.d/ \
+		59-bc-workroom-stm32.rules=/lib/udev/rules.d/ \
 		mosquitto.conf=/etc/mosquitto/conf.d/bigclown.conf
 
 	cd - >/dev/null
