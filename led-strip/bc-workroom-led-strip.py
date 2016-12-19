@@ -7,8 +7,8 @@ and relative humidity read from MQTT.
 MQTT topic: plugin/led-strip/config
 
 Usage:
-  bc-workroom-ledstrip [options]
-  bc-workroom-ledstrip --help
+  bc-workroom-led-strip [options]
+  bc-workroom-led-strip --help
 
 Options:
   -D --debug           Print debug messages.
@@ -46,7 +46,6 @@ DEFAULT_PLUGIN_CONFIG = {
 }
 
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
-
 
 # TODO: refactor!
 def check_config(config):
@@ -93,16 +92,19 @@ def check_config(config):
                             'value %s of key %s is not type int or float' % (repr(v), k))
 
 
-def make_pixels(red, green, blue, white, brightness=255, nums=144):
+def make_pixels(red, green, blue, white=None, brightness=255, count=144):
     pixel = [(red * (brightness + 1)) >> 8,
              (green * (brightness + 1)) >> 8,
-             (blue * (brightness + 1)) >> 8,
-             (white * (brightness + 1)) >> 8]
+             (blue * (brightness + 1)) >> 8]
+    if white is not None:
+        pixel.append((white * (brightness + 1)) >> 8)
+
     log.debug('Pixel: %s', pixel)
 
-    buf = pixel * nums
+    buf = pixel * count
     pixels = base64.b64encode(bytearray(buf)).decode()
-    assert(len(pixels) == 768)
+
+    log.debug('len(base64): %d', len(pixels))
 
     return pixels
 
@@ -144,7 +146,9 @@ def set_led_strip(client, userdata):
             break
 
     if color:
-        pixels = make_pixels(*color, brightness=userdata['config']['brightness'])
+        if userdata['mode'] == 'rgb' :
+            color = color[:3]
+        pixels = make_pixels(*color, brightness=userdata['config']['brightness'], count=userdata['count'])
         client.publish('nodes/base/led-strip/-/set', json.dumps({'pixels': pixels}))
 
 
@@ -154,7 +158,8 @@ def mgtt_on_connect(client, userdata, flags, rc):
     for topic in ('plugin/led-strip/config',
                   'plugin/led-strip/config/set',
                   'nodes/remote/+/+',
-                  'nodes/base/push-button/-'):
+                  'nodes/base/push-button/-',
+                  'nodes/base/led-strip/-/config/set'):
         client.subscribe(topic)
 
 
@@ -206,12 +211,24 @@ def mgtt_on_message(client, userdata, msg):
             except Exception as e:
                 log.error('Invalid config: %s', e)
             return
+    
+    elif msg.topic == 'nodes/base/led-strip/-/config/set':
+        if payload.get('mode', None) not in ('rgb', 'rgbw'):
+            log.error('Invalid led-strip config: %s', e)
+            return
+        
+        userdata['mode'] = payload['mode']
+
+        try:
+            userdata['count'] = int(payload['count'])
+        except (TypeError, ValueError) as e:
+            log.error('Invalid led-strip config: %s', e)
 
     set_led_strip(client, userdata)
 
 
 def main():
-    arguments = docopt(__doc__, version='bc-workroom-ledstrip %s' % __version__)
+    arguments = docopt(__doc__, version='bc-workroom-led-strip %s' % __version__)
     opts = {k.lstrip('-').replace('-', '_'): v
             for k, v in arguments.items() if v}
 
@@ -219,7 +236,7 @@ def main():
 
     check_config(DEFAULT_PLUGIN_CONFIG)
 
-    client = mqtt.Client(userdata={'config': DEFAULT_PLUGIN_CONFIG})
+    client = mqtt.Client(userdata={'config': DEFAULT_PLUGIN_CONFIG, 'count': 144, 'mode': 'rgbw'})
     client.on_connect = mgtt_on_connect
     client.on_message = mgtt_on_message
 

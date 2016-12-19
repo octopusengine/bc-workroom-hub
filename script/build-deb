@@ -101,21 +101,21 @@ build_gateway() {
 	cd - >/dev/null
 }
 
-build_ledstrip() {
-	einfo 'Building debian package bc-workroom-ledstrip'
+build_led-strip() {
+	einfo 'Building debian package bc-workroom-led-strip'
 
-	cp -r ledstrip "$BUILD_DIR"/
-	cd "$BUILD_DIR"/ledstrip
+	cp -r led-strip "$BUILD_DIR"/
+	cd "$BUILD_DIR"/led-strip
 
 	replace_placeholders *.py
 	chmod +x *.py
 
-	_fpm --name bc-workroom-ledstrip \
+	_fpm --name bc-workroom-led-strip \
 		--depends bc-common \
 		--depends bc-workroom-gateway \
 		$(python_depends) \
-		--deb-systemd bc-workroom-ledstrip.service \
-		bc-workroom-ledstrip.py=/usr/bin/bc-workroom-ledstrip
+		--deb-systemd bc-workroom-led-strip.service \
+		bc-workroom-led-strip.py=/usr/bin/bc-workroom-led-strip
 
 	cd - >/dev/null
 }
@@ -176,7 +176,7 @@ rm -rf "$BUILD_DIR"
 rm -rf "$TARGET_DIR"/*.deb
 mkdir -p "$BUILD_DIR" "$TARGET_DIR"
 
-for module in common gateway ledstrip blynk paho_mqtt; do
+for module in common gateway led-strip blynk paho_mqtt; do
 	eval "build_$module"
 done
 

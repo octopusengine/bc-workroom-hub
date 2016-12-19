@@ -4,7 +4,7 @@ After=network.target mosquitto.service bc-workroom-gateway.service
 Requires=mosquitto.service bc-workroom-gateway.service
 
 [Service]
-ExecStart=/usr/bin/bc-workroom-ledstrip
+ExecStart=/usr/bin/bc-workroom-led-strip
 User=bigclown
 Restart=on-failure
 RestartSec=10s

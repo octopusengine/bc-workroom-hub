@@ -21,7 +21,7 @@ wget -O - | sudo apt-key add -
 
 # Install packages
 sudo apt-get update
-sudo apt-get install bc-workroom-ledstrip bc-workroom-blynk
+sudo apt-get install bc-workroom-led-strip bc-workroom-blynk
 ----
 
 
