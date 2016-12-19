@@ -1,6 +1,6 @@
 [Unit]
 Description=Blynk plugin for BigClown Workroom Project
-After=network.target
+After=network.target mosquitto.service bc-workroom-gateway.service
 Requires=mosquitto.service bc-workroom-gateway.service
 
 [Service]
@@ -10,4 +10,4 @@ Restart=on-failure
 RestartSec=10s
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bc-workroom-gateway.service

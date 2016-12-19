@@ -1,2 +1,2 @@
 # BigClown Core module connected via USB in serial mode
-SUBSYSTEMS=="usb", ACTION=="add", KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", GROUP="bigclown", MODE="0660", SYMLINK+="stm32-ACM%n", TAG+="systemd"
+SUBSYSTEMS=="usb", ACTION=="add", KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", GROUP="bigclown", MODE="0660", SYMLINK+="stm32ACM%n", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/stm32ACM%n"
