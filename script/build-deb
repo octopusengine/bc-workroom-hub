@@ -101,7 +101,7 @@ build_gateway() {
 	cd - >/dev/null
 }
 
-build_led-strip() {
+build_led_strip() {
 	einfo 'Building debian package bc-workroom-led-strip'
 
 	cp -r led-strip "$BUILD_DIR"/
@@ -176,7 +176,7 @@ rm -rf "$BUILD_DIR"
 rm -rf "$TARGET_DIR"/*.deb
 mkdir -p "$BUILD_DIR" "$TARGET_DIR"
 
-for module in common gateway led-strip blynk paho_mqtt; do
+for module in common gateway led_strip blynk paho_mqtt; do
 	eval "build_$module"
 done
 
