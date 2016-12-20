@@ -6,6 +6,8 @@
  * virtual pin 0 - temperature
  * virtual pin 1 - relative-humidity
  * virtual pin 2 - set brightness range 0 .. 255
+ * virtual pin 3 - light
+ * virtual pin 4 - relay
  *
  * Example config:
  * mosquitto_pub -t "plugin/blynk/config" -m '{"token":"your token id"}' -r
@@ -52,10 +54,17 @@ function BlynkClient(token, client) {
   var v0 = new blynk.VirtualPin(0);
   var v1 = new blynk.VirtualPin(1);
   var v2 = new blynk.VirtualPin(2);
+  var v3 = new blynk.VirtualPin(3);
+  var v4 = new blynk.VirtualPin(4);
 
   function addSubscibe() {
     logging.debug("mqtt subscribe", "nodes/remote/+/+");
     client.subscribe("nodes/remote/+/+");
+    logging.debug("mqtt subscribe", "nodes/base/light/-");
+    client.subscribe("nodes/base/light/-");
+
+    client.publish("nodes/base/light/-/get", "{}");
+    client.publish("nodes/base/relay/-/get", "{}");
   }
 
   v2.on('write', function(value) {
@@ -63,7 +72,15 @@ function BlynkClient(token, client) {
     client.publish("plugin/led-strip/config/set", JSON.stringify({ "brightness": parseInt(value[0]) }));
   });
 
-  client.on('connect', addSubscibe);
+  v3.on('write', function(value) {
+    logging.debug('blynk v3', 'on write', value[0]);
+    client.publish("nodes/base/light/-/set", JSON.stringify({ "state": value[0] == "1" ? true : false }));
+  });
+
+  v4.on('write', function(value) {
+    logging.debug('blynk v4', 'on write', value[0]);
+    client.publish("nodes/base/relay/-/set", JSON.stringify({ "state": value[0] == "1" ? true : false }));
+  });
 
   function clientMessage(topic, message) {
     logging.debug("BlynkClient message", topic, message.toString());
@@ -83,7 +100,14 @@ function BlynkClient(token, client) {
           v1.write(payload['relative-humidity'][0]);
         }
 
+      } else if (topic === "nodes/base/light/-") {
+        v3.write(payload['state'] ? "1" : "0");
+
+      } else if (topic === "nodes/base/relay/-") {
+        v4.write(payload['state'] ? "1" : "0");
+
       }
+
     } catch (error) {
       logging.error('Error', error, topic, message.toString());
       return;
@@ -91,7 +115,7 @@ function BlynkClient(token, client) {
   }
 
   client.on('message', clientMessage);
-
+  client.on('connect', addSubscibe);
   blynk.on('connect', addSubscibe);
 
   this.destroy = function() {
