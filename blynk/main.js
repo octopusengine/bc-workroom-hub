@@ -49,18 +49,13 @@ function BlynkClient(token, client) {
   this.token = token;
   var blynk = new blynkLib.Blynk(token);
 
-  var v0_topic = "nodes/remote/thermometer/i2c0-49";
-  var v1_topic = "nodes/remote/humidity-sensor/i2c0-40";
-
   var v0 = new blynk.VirtualPin(0);
   var v1 = new blynk.VirtualPin(1);
   var v2 = new blynk.VirtualPin(2);
 
   function addSubscibe() {
-    logging.debug("mqtt subscribe", v0_topic);
-    client.subscribe(v0_topic);
-    logging.debug("mqtt subscribe", v1_topic);
-    client.subscribe(v1_topic);
+    logging.debug("mqtt subscribe", "nodes/remote/+/+");
+    client.subscribe("nodes/remote/+/+");
   }
 
   v2.on('write', function(value) {
@@ -78,11 +73,15 @@ function BlynkClient(token, client) {
     try {
       var payload = JSON.parse(message.toString());
 
-      if (v0_topic === topic) {
-        v0.write(payload['temperature'][0]);
-
-      } else if ((v1_topic === topic) && payload['relative-humidity']) {
-        v1.write(payload['relative-humidity'][0]);
+      if ((topic === "nodes/remote/thermometer/i2c0-49") || topic === "nodes/remote/thermometer/i2c1-49") {
+        if (payload['temperature']) {
+          v0.write(payload['temperature'][0]);
+        }
+        
+      } else if ((topic === "nodes/remote/humidity-sensor/i2c0-40") || (topic === "nodes/remote/humidity-sensor/i2c1-40") ) {
+        if (payload['relative-humidity']) {
+          v1.write(payload['relative-humidity'][0]);
+        }
 
       }
     } catch (error) {

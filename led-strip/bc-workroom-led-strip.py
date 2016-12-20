@@ -40,7 +40,7 @@ DEFAULT_PLUGIN_CONFIG = {
         {'relative-humidity': {'to': 30}, 'color': [255, 255, 0, 0]},
         {'temperature': {'from': 26}, 'color': [255, 0, 0, 0]},
         {'temperature': {'to': 22}, 'color': [0, 0, 255, 0]},
-        {'color': [0, 0, 0, 255]},
+        {'color': [0, 0, 0, 230]},
     ],
     'brightness': 255,
 }
@@ -180,14 +180,14 @@ def mgtt_on_message(client, userdata, msg):
 
     now = time.time()
 
-    if msg.topic == 'nodes/remote/thermometer/i2c0-49':
+    if msg.topic == 'nodes/remote/thermometer/i2c0-49' or msg.topic == 'nodes/remote/thermometer/i2c1-49':
         try:
             userdata['temperature'] = float(payload['temperature'][0])
             userdata['temperature-ts'] = now
         except (TypeError, ValueError) as e:
             log.error('Invalid temperature: %s', e)
 
-    elif msg.topic == 'nodes/remote/humidity-sensor/i2c0-40':
+    elif msg.topic == 'nodes/remote/humidity-sensor/i2c0-40' or msg.topic == 'nodes/remote/humidity-sensor/i2c1-40':
         try:
             userdata['relative-humidity'] = float(payload['relative-humidity'][0])
             userdata['relative-humidity-ts'] = now
