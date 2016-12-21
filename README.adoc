@@ -17,7 +17,7 @@ TODO
 ----
 # Add our repository
 echo "deb https://repo.bigclown.com/debian jessie main" | sudo tee /etc/apt/sources.list.d/bigclown.list
-wget -O - | sudo apt-key add -
+wget https://repo.bigclown.com/debian/pubkey.gpg -O - | sudo apt-key add -
 
 # Install packages
 sudo apt-get update
