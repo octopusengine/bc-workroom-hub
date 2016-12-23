@@ -51,7 +51,7 @@ var pluginTopic = "plugin/" + (options['--base-topic'] || DEFAULT_MQTT_TOPIC);
 function BlynkClient(token, client) {
   this.token = token;
   var blynk = new blynkLib.Blynk(token);
-  
+
   var v0 = new blynk.VirtualPin(0);
   var v1 = new blynk.VirtualPin(1);
   var v2 = new blynk.VirtualPin(2);

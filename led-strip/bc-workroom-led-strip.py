@@ -222,7 +222,7 @@ def mgtt_on_message(client, userdata, msg):
                 userdata['data']['brightness'] = int(payload['brightness'])
 
             if 'state' in payload:
-                if payload['state'] not in ('rules', 'color'):
+                if payload['state'] not in ('rules', 'color', 'disable'):
                     raise ValueError('state values is rules or color')
                 userdata['data']['state'] = payload['state']
 
