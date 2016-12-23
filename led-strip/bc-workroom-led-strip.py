@@ -35,49 +35,59 @@ DEFAULT_MQTT_HOST = 'localhost'
 DEFAULT_MQTT_PORT = 1883
 
 DEFAULT_PLUGIN_CONFIG = {
-    'values': [
+    'rules': [
         {'relative-humidity': {'from': 60}, 'color': [0, 255, 0, 0]},
         {'relative-humidity': {'to': 30}, 'color': [255, 255, 0, 0]},
         {'temperature': {'from': 26}, 'color': [255, 0, 0, 0]},
         {'temperature': {'to': 22}, 'color': [0, 0, 255, 0]},
-        {'color': [0, 0, 0, 230]},
-    ],
+        {'color': [0, 0, 0, 230]}
+    ]
+}
+
+DEFAULT_PLUGIN_DATA = {
     'brightness': 255,
+    "state": "rules",
+    'color': [255, 0, 0, 0]
 }
 
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
-# TODO: refactor!
+
+def check_color_format(color):
+    if len(color) != 4:
+        raise AttributeError('bad define color %s' % color)
+    for c in color:
+        if not isinstance(c, int) or c < 0 or c > 255:
+            raise AttributeError('bad define color %s' % color)
+    return color
+
+
 def check_config(config):
-    check_config_key = {'values', 'brightness'}
-    config_key = set(config.keys())
-    if config_key - check_config_key:
-        raise AttributeError('unknown key(s): ' + ', '.join(config_key - check_config_key))
-    if check_config_key - config_key:
-        raise AttributeError('missing key(s): ' + ', '.join(check_config_key - config_key))
+    if 'values' in config:
+        config['rules'] = config['values']
+        del config['values']
 
-    if config['brightness'] < 0 or config['brightness'] > 255:
-        raise AttributeError('brightness must be in range 0..255')
+    if tuple(config) != ('rules',):
+        raise AttributeError('missing or unknown key')
 
-    if not isinstance(config['values'], list):
+    if not isinstance(config['rules'], list):
         raise AttributeError('values must be of type list')
 
     check_row_keys = {'color', 'temperature', 'relative-humidity', 'label'}
 
-    for row in config['values']:
+    for row in config['rules']:
+        if not row:
+            raise AttributeError('not allowed empty rule')
+
         row_keys = set(row.keys())
 
-        if len(row_keys) == 0:
-            raise AttributeError('%s is empty' % row)
-
         if row_keys - check_row_keys:
-            raise AttributeError('unknown key: ' + ', '.join(row_keys - check_row_keys))
+            raise AttributeError('in rule unknown key: ' + ', '.join(row_keys - check_row_keys))
 
         if 'color' not in row:
-            raise AttributeError('missing key: color')
+            raise AttributeError('in rule missing key: color')
 
-        if len(row['color']) != 4 or len(list(filter(lambda x: x >= 0 <= 255, row['color']))) != 4:
-            raise AttributeError('bad define color %s' % row['color'])
+        check_color_format(row['color'])
 
         for key in ('relative-humidity', 'temperature'):
             if key in row:
@@ -86,10 +96,10 @@ def check_config(config):
 
                 for k, v in row[key].items():
                     if k not in ('from', 'to'):
-                        raise AttributeError('unknown key: %s' % k)
+                        raise AttributeError('in rule unknown key: %s' % k)
                     elif not isinstance(v, (int, float)):
                         raise AttributeError(
-                            'value %s of key %s is not type int or float' % (repr(v), k))
+                            'in rule: value %s of key %s is not type int or float' % (repr(v), k))
 
 
 def make_pixels(red, green, blue, white=None, brightness=255, count=144):
@@ -109,46 +119,45 @@ def make_pixels(red, green, blue, white=None, brightness=255, count=144):
     return pixels
 
 
-# TODO: refactor!
-def set_led_strip(client, userdata):
-    now = time.time()
-
-    if (now - userdata.get('temperature-ts', 0)) > 180:
-        userdata['temperature'] = None
-
-    if (now - userdata.get('relative-humidity-ts', 0)) > 180:
-        userdata['relative-humidity'] = None
-
+def base_led_strip_set_pixels(client, userdata):
     color = None
 
-    for row in userdata['config']['values']:
-        valid = True
+    if userdata['data']['state'] == 'rules':
+        now = time.time()
 
-        for key in ('relative-humidity', 'temperature'):
-            if valid and key in row:
+        if (now - userdata.get('temperature-ts', 0)) > 180:
+            userdata['temperature'] = None
 
+        if (now - userdata.get('relative-humidity-ts', 0)) > 180:
+            userdata['relative-humidity'] = None
+
+        for row in userdata['config']['rules']:
+
+            for key in ('relative-humidity', 'temperature'):
                 measured_value = userdata.get(key, None)
                 if measured_value is None:
-                    valid = False
                     break
 
-                for key, value in row[key].items():
-                    if key == 'to' and measured_value <= value:
-                        pass
-                    elif key == 'from' and measured_value >= value:
-                        pass
-                    else:
-                        valid = False
+                rule = row.get(key, None)
+                if rule:
+                    if 'to' in rule and measured_value > rule['to']:
+                        break
 
-        if valid:
-            log.debug(row)
-            color = row['color']
-            break
+                    if 'from' in rule and measured_value < rule['from']:
+                        break
+
+            else:
+                log.debug(row)
+                color = row['color']
+                break
+
+    elif userdata['data']['state'] == 'color':
+        color = userdata['data']['color']
 
     if color:
-        if userdata['mode'] == 'rgb' :
+        if userdata['mode'] == 'rgb':
             color = color[:3]
-        pixels = make_pixels(*color, brightness=userdata['config']['brightness'], count=userdata['count'])
+        pixels = make_pixels(*color, brightness=userdata['data']['brightness'], count=userdata['count'])
         client.publish('nodes/base/led-strip/-/set', json.dumps({'pixels': pixels}))
 
 
@@ -156,10 +165,14 @@ def mgtt_on_connect(client, userdata, flags, rc):
     log.info('Connected to MQTT broker (code %s)', rc)
 
     for topic in ('plugin/led-strip/config',
-                  'plugin/led-strip/config/set',
+                  'plugin/led-strip/data/set',
                   'nodes/remote/+/+',
-                  'nodes/base/push-button/-',
-                  'nodes/base/led-strip/-/config/set'):
+                  'nodes/base/+/+',
+                  'nodes/base/led-strip/-/config/set',
+                  # compatibility with old implementation
+                  'plugin/led-strip/config/set',
+                  'plugin/led-strip/set'):
+        log.debug('subscribe %s', topic)
         client.subscribe(topic)
 
 
@@ -180,6 +193,12 @@ def mgtt_on_message(client, userdata, msg):
 
     now = time.time()
 
+    # compatibility with old implementation
+    if msg.topic == 'plugin/led-strip/set' and 'color' in payload:
+        msg.topic = 'plugin/led-strip/data/set'
+    elif msg.topic == 'plugin/led-strip/config/set' and 'brightness' in payload:
+        msg.topic = 'plugin/led-strip/data/set'
+
     if msg.topic == 'nodes/remote/thermometer/i2c0-49' or msg.topic == 'nodes/remote/thermometer/i2c1-49':
         try:
             userdata['temperature'] = float(payload['temperature'][0])
@@ -194,6 +213,34 @@ def mgtt_on_message(client, userdata, msg):
         except (TypeError, ValueError) as e:
             log.error('Invalid relative-humidity: %s', e)
 
+    elif msg.topic == 'plugin/led-strip/data/set':
+        try:
+            if 'color' in payload:
+                userdata['data']['color'] = check_color_format(payload['color'])
+
+            if 'brightness' in payload:
+                userdata['data']['brightness'] = int(payload['brightness'])
+
+            if 'state' in payload:
+                if payload['state'] not in ('rules', 'color'):
+                    raise ValueError('state values is rules or color')
+                userdata['data']['state'] = payload['state']
+
+        except Exception as e:
+            log.error('Invalid data: %s', e)
+            return
+
+    elif msg.topic == 'nodes/base/led-strip/-/config/set':
+        try:
+            if payload.get('mode', None) not in ('rgb', 'rgbw'):
+                raise ValueError('mode values is rgb or rgbw')
+
+            userdata['mode'] = payload['mode']
+            userdata['count'] = int(payload['count'])
+        except (TypeError, ValueError) as e:
+            log.error('Invalid led-strip config: %s', e)
+            return
+
     elif msg.topic == 'plugin/led-strip/config':
         try:
             check_config(payload)
@@ -201,30 +248,7 @@ def mgtt_on_message(client, userdata, msg):
         except Exception as e:
             log.error('Invalid config: %s', e)
 
-    elif msg.topic == 'plugin/led-strip/config/set':
-        if 'brightness' in payload:
-            config = userdata['config']
-            config['brightness'] = payload['brightness']
-            try:
-                check_config(config)
-                client.publish('plugin/led-strip/config', json.dumps(config), retain=True)
-            except Exception as e:
-                log.error('Invalid config: %s', e)
-            return
-    
-    elif msg.topic == 'nodes/base/led-strip/-/config/set':
-        if payload.get('mode', None) not in ('rgb', 'rgbw'):
-            log.error('Invalid led-strip config: %s', e)
-            return
-        
-        userdata['mode'] = payload['mode']
-
-        try:
-            userdata['count'] = int(payload['count'])
-        except (TypeError, ValueError) as e:
-            log.error('Invalid led-strip config: %s', e)
-
-    set_led_strip(client, userdata)
+    base_led_strip_set_pixels(client, userdata)
 
 
 def main():
@@ -236,7 +260,7 @@ def main():
 
     check_config(DEFAULT_PLUGIN_CONFIG)
 
-    client = mqtt.Client(userdata={'config': DEFAULT_PLUGIN_CONFIG, 'count': 144, 'mode': 'rgbw'})
+    client = mqtt.Client(userdata={'config': DEFAULT_PLUGIN_CONFIG, 'data': DEFAULT_PLUGIN_DATA, 'count': 144, 'mode': 'rgbw'})
     client.on_connect = mgtt_on_connect
     client.on_message = mgtt_on_message
 
