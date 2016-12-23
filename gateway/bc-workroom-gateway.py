@@ -60,6 +60,8 @@ def main():
     serial = Serial(opts.get('device', DEFAULT_DEVICE), timeout=3.0)
     fcntl.flock(serial.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
+    serial.write(b'\n')
+
     base_topic = opts.get('base_topic', DEFAULT_MQTT_TOPIC).rstrip('/') + '/'
 
     mqttc = mqtt.Client(userdata={'serial': serial, 'base_topic': base_topic})
