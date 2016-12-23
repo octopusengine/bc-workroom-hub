@@ -8,6 +8,7 @@
  * virtual pin 2 - set brightness range 0 .. 255
  * virtual pin 3 - light
  * virtual pin 4 - relay
+ * virtual pin 10 - zeRGBa widget
  *
  * Example config:
  * mosquitto_pub -t "plugin/blynk/config" -m '{"token":"your token id"}' -r
@@ -50,12 +51,13 @@ var pluginTopic = "plugin/" + (options['--base-topic'] || DEFAULT_MQTT_TOPIC);
 function BlynkClient(token, client) {
   this.token = token;
   var blynk = new blynkLib.Blynk(token);
-
+  
   var v0 = new blynk.VirtualPin(0);
   var v1 = new blynk.VirtualPin(1);
   var v2 = new blynk.VirtualPin(2);
   var v3 = new blynk.VirtualPin(3);
   var v4 = new blynk.VirtualPin(4);
+  var v10 = new blynk.VirtualPin(10);
 
   function addSubscibe() {
     logging.debug("mqtt subscribe", "nodes/remote/+/+");
@@ -69,7 +71,7 @@ function BlynkClient(token, client) {
 
   v2.on('write', function(value) {
     logging.debug('blynk v2', 'on write', value[0]);
-    client.publish("plugin/led-strip/config/set", JSON.stringify({ "brightness": parseInt(value[0]) }));
+    client.publish("plugin/led-strip/data/set", JSON.stringify({ "brightness": parseInt(value[0]) }));
   });
 
   v3.on('write', function(value) {
@@ -80,6 +82,17 @@ function BlynkClient(token, client) {
   v4.on('write', function(value) {
     logging.debug('blynk v4', 'on write', value[0]);
     client.publish("nodes/base/relay/-/set", JSON.stringify({ "state": value[0] == "1" ? true : false }));
+  });
+
+  v10.on('write', function(value) {
+    logging.debug('blynk v10', 'on write', value);
+    var payload, color = [parseInt(value[0]) || 0, parseInt(value[1]) || 0, parseInt(value[2]) || 0, 0];
+    if ((color[0] == 255) && (color[1] == 255) && (color[2] == 255)) {
+      payload = {"state": "rules"};
+    } else {
+      payload = {"color": color, "state": "color"};
+    }
+    client.publish("plugin/led-strip/data/set", JSON.stringify(payload));
   });
 
   function clientMessage(topic, message) {
