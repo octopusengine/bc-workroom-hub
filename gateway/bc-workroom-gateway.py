@@ -47,7 +47,7 @@ def mgtt_on_connect(client, userdata, flags, rc):
 
 def mgtt_on_message(client, userdata, msg):
     subtopic = msg.topic[len(userdata['base_topic']):]
-    userdata['serial'].write(b'["' + bytes(subtopic, 'utf-8') + b'",' + msg.payload + b']\n')
+    userdata['serial'].write(b'["' + subtopic.encode('utf-8') + b'",' + msg.payload + b']\n')
 
 
 def main():
