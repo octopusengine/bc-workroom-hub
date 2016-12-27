@@ -63,9 +63,12 @@ def check_color_format(color):
 
 
 def check_config(config):
+    # compatibility with old implementation
     if 'values' in config:
         config['rules'] = config['values']
         del config['values']
+    if 'brightness' in config:
+        del config['brightness']
 
     if tuple(config) != ('rules',):
         raise AttributeError('missing or unknown key')
@@ -100,6 +103,7 @@ def check_config(config):
                     elif not isinstance(v, (int, float)):
                         raise AttributeError(
                             'in rule: value %s of key %s is not type int or float' % (repr(v), k))
+    return config
 
 
 def make_pixels(red, green, blue, white=None, brightness=255, count=144):
@@ -243,8 +247,7 @@ def mgtt_on_message(client, userdata, msg):
 
     elif msg.topic == 'plugin/led-strip/config':
         try:
-            check_config(payload)
-            userdata['config'] = payload
+            userdata['config'] = check_config(payload)
         except Exception as e:
             log.error('Invalid config: %s', e)
 
@@ -258,9 +261,7 @@ def main():
 
     log.basicConfig(level=DEBUG if opts.get('debug') else INFO, format=LOG_FORMAT)
 
-    check_config(DEFAULT_PLUGIN_CONFIG)
-
-    client = mqtt.Client(userdata={'config': DEFAULT_PLUGIN_CONFIG, 'data': DEFAULT_PLUGIN_DATA, 'count': 144, 'mode': 'rgbw'})
+    client = mqtt.Client(userdata={'config': check_config(DEFAULT_PLUGIN_CONFIG), 'data': DEFAULT_PLUGIN_DATA, 'count': 144, 'mode': 'rgbw'})
     client.on_connect = mgtt_on_connect
     client.on_message = mgtt_on_message
 
