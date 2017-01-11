@@ -1,6 +1,18 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
+== link:{gh-url}/tree/v1.0.3[v1.0.3] (2016-01-11)
+Added::
+* Udev rules for bc-bridge
+
+== link:{gh-url}/tree/v1.0.2[v1.0.2] (2016-12-30)
+Fixed::
+* Fix check_config in plugin lef-strip
+
+== link:{gh-url}/tree/v1.0.1[v1.0.1] (2016-12-19)
+Fixed::
+* Reapire build script
+
 == link:{gh-url}/tree/v1.0.0[1.0.0] (2016-12-19)
 
 * The first stable release.
