@@ -78,6 +78,7 @@ build_common() {
 		--depends udev \
 		--depends mosquitto \
 		59-bc-workroom-stm32.rules=/lib/udev/rules.d/ \
+		59-bc-bridge.rules=/lib/udev/rules.d/ \
 		mosquitto.conf=/etc/mosquitto/conf.d/bigclown.conf
 
 	cd - >/dev/null
