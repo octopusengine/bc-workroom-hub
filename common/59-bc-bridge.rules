@@ -1,2 +1,2 @@
 # BigClown bridge connected via USB in hid mode
-SUBSYSTEMS=="usb", ACTION=="add", KERNEL=="hidraw*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6030", GROUP="bigclown", MODE="0660", TAG+="systemd", SYMLINK+="bcbridgehid%n", ENV{SYSTEMD_ALIAS}="/dev/bcbridgehid%n"
+SUBSYSTEMS=="usb", ACTION=="add", KERNEL=="hidraw*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6030", GROUP="bigclown", MODE="0660", TAG+="systemd", SYMLINK+="ft260hidraw%n", ENV{SYSTEMD_ALIAS}="/dev/ft260hidraw%n"
