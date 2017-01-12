@@ -5,6 +5,9 @@
 Changed::
 * Change device symlink created by udev from `/dev/bcbridgehid%n` to `/dev/ft260hidraw%n`.
 
+Fixed::
+* Fix postinst scripts to not wait for a service to be started.
+
 == link:{gh-url}/tree/v1.0.3[v1.0.3] (2016-01-11)
 Added::
 * Udev rules for bc-bridge

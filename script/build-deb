@@ -42,6 +42,9 @@ _fpm() {
 		--license "$PKG_LICENSE" \
 		--version "$PKG_VERSION" \
 		--architecture all \
+		--template-scripts \
+		--after-install "$BASE_DIR"/debian/after-install.erb \
+		--after-upgrade "$BASE_DIR"/debian/after-upgrade.erb \
 		"$@"
 }
 
