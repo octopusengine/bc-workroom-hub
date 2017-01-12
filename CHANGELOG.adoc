@@ -1,6 +1,10 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
+== link:{gh-url}/tree/v1.0.4[v1.0.4] (2016-01-12)
+Changed::
+* Udev rules for bc-bridge rename symlink to ft260hidraw%n
+
 == link:{gh-url}/tree/v1.0.3[v1.0.3] (2016-01-11)
 Added::
 * Udev rules for bc-bridge
