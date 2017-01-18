@@ -1,6 +1,10 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
+== link:{gh-url}/tree/v1.2.0[v1.2.0] (unreleased)
+Added::
+* Add option --list to bc-workroom-gateway
+
 == link:{gh-url}/tree/v1.1.0[v1.1.0] (2017-01-12)
 Changed::
 * Change device symlink created by udev from `/dev/bcbridgehid%n` to `/dev/ft260hidraw%n`.
