@@ -12,6 +12,7 @@ Options:
   -h HOST --host=HOST          MQTT host to connect to (default is localhost).
   -p PORT --port=PORT          MQTT port to connect to (default is 1883).
   -t TOPIC --base-topic=TOPIC  Base MQTT topic (default is nodes).
+  --list                       Show list of available devices
   -v --version                 Print version.
   --help                       Show this message.
 """
@@ -59,6 +60,11 @@ def main():
             for k, v in arguments.items() if v}
 
     log.basicConfig(level=DEBUG if opts.get('debug') else INFO, format=LOG_FORMAT)
+
+    if opts.get('list'):
+        for p in list_ports.comports():
+            print(p)
+        return
 
     serial = Serial(opts.get('device', DEFAULT_DEVICE), timeout=3.0)
     if platform.system() == 'Linux':
