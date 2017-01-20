@@ -5,6 +5,7 @@
 Added::
 * Add option --list to bc-workroom-gateway
 * Led-strip plugin confirm set data
+* Add publish errors in led-strip plugin
 
 Fixed::
 * Fix condition for the default rule in led-strip plugin

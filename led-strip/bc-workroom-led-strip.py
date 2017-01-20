@@ -212,6 +212,7 @@ def mgtt_on_message(client, userdata, msg):
             userdata['temperature-ts'] = now
         except (TypeError, ValueError) as e:
             log.error('Invalid temperature: %s', e)
+            client.publish(msg.topic + '/-/error', json.dumps({"msg": 'Invalid temperature: ' + str(e)}))
 
     elif msg.topic == 'nodes/remote/humidity-sensor/i2c0-40' or msg.topic == 'nodes/remote/humidity-sensor/i2c1-40':
         try:
@@ -219,30 +220,34 @@ def mgtt_on_message(client, userdata, msg):
             userdata['relative-humidity-ts'] = now
         except (TypeError, ValueError) as e:
             log.error('Invalid relative-humidity: %s', e)
+            client.publish(msg.topic + '/-/error', json.dumps({"msg": 'Invalid relative-humidity: ' + str(e)}))
 
     elif msg.topic == 'plugin/led-strip/data/set':
         try:
             ok_payload = {}
 
             if 'color' in payload:
-                userdata['data']['color'] = check_color_format(payload['color'])
-                ok_payload['color'] = userdata['data']['color']
+                ok_payload['color'] = check_color_format(payload['color'])
 
             if 'brightness' in payload:
-                userdata['data']['brightness'] = int(payload['brightness'])
-                ok_payload['brightness'] = userdata['data']['brightness']
+                brightness = int(payload['brightness'])
+                if brightness < 0 or brightness > 255:
+                    raise Exception('brightness out of range')
+
+                ok_payload['brightness'] = brightness
 
             if 'state' in payload:
                 if payload['state'] not in ('rules', 'color', 'disable'):
                     raise ValueError('state values is rules or color')
-                userdata['data']['state'] = payload['state']
-                ok_payload['state'] = userdata['data']['state']
+                ok_payload['state'] = payload['state']
 
             if ok_payload:
+                userdata['data'].update(ok_payload)
                 client.publish('plugin/led-strip/data/set/ok', json.dumps(ok_payload))
 
         except Exception as e:
             log.error('Invalid data: %s', e)
+            client.publish(msg.topic + '/error', json.dumps({"msg": 'Invalid data: ' + str(e)}))
             return
 
     elif msg.topic == 'nodes/base/led-strip/-/config/set':
@@ -254,6 +259,7 @@ def mgtt_on_message(client, userdata, msg):
             userdata['count'] = int(payload['count'])
         except (TypeError, ValueError) as e:
             log.error('Invalid led-strip config: %s', e)
+            client.publish(msg.topic + '/error', json.dumps({"msg": 'Invalid led-strip config: ' + str(e)}))
             return
 
     elif msg.topic == 'plugin/led-strip/config':
@@ -261,6 +267,8 @@ def mgtt_on_message(client, userdata, msg):
             userdata['config'] = check_config(payload)
         except Exception as e:
             log.error('Invalid config: %s', e)
+            client.publish(msg.topic + '/-/error', json.dumps({"msg": 'Invalid config: ' + str(e)}))
+            return
 
     base_led_strip_set_pixels(client, userdata)
 
