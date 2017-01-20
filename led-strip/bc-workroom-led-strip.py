@@ -222,16 +222,24 @@ def mgtt_on_message(client, userdata, msg):
 
     elif msg.topic == 'plugin/led-strip/data/set':
         try:
+            ok_payload = {}
+
             if 'color' in payload:
                 userdata['data']['color'] = check_color_format(payload['color'])
+                ok_payload['color'] = userdata['data']['color']
 
             if 'brightness' in payload:
                 userdata['data']['brightness'] = int(payload['brightness'])
+                ok_payload['brightness'] = userdata['data']['brightness']
 
             if 'state' in payload:
                 if payload['state'] not in ('rules', 'color', 'disable'):
                     raise ValueError('state values is rules or color')
                 userdata['data']['state'] = payload['state']
+                ok_payload['state'] = userdata['data']['state']
+
+            if ok_payload:
+                client.publish('plugin/led-strip/data/set/ok', json.dumps(ok_payload))
 
         except Exception as e:
             log.error('Invalid data: %s', e)
