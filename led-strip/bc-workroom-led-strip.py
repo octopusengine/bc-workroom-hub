@@ -138,11 +138,14 @@ def base_led_strip_set_pixels(client, userdata):
         for row in userdata['config']['rules']:
 
             for key in ('relative-humidity', 'temperature'):
+                rule = row.get(key, None)
+                if rule is None:
+                    continue
+
                 measured_value = userdata.get(key, None)
                 if measured_value is None:
                     break
 
-                rule = row.get(key, None)
                 if rule:
                     if 'to' in rule and measured_value > rule['to']:
                         break
