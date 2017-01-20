@@ -64,6 +64,7 @@ function BlynkClient(token, client) {
     client.subscribe("nodes/remote/+/+");
     logging.debug("mqtt subscribe", "nodes/base/light/-");
     client.subscribe("nodes/base/light/-");
+    client.subscribe("plugin/led-strip/data/set/ok");
 
     client.publish("nodes/base/light/-/get", "{}");
     client.publish("nodes/base/relay/-/get", "{}");
@@ -71,7 +72,8 @@ function BlynkClient(token, client) {
 
   v2.on('write', function(value) {
     logging.debug('blynk v2', 'on write', value[0]);
-    client.publish("plugin/led-strip/data/set", JSON.stringify({ "brightness": parseInt(value[0]) }));
+    var brightness = Math.floor(parseInt(value[0]) / 1024 * 255);
+    client.publish("plugin/led-strip/data/set", JSON.stringify({ "brightness": brightness}));
   });
 
   v3.on('write', function(value) {
@@ -84,7 +86,7 @@ function BlynkClient(token, client) {
     client.publish("nodes/base/relay/-/set", JSON.stringify({ "state": value[0] == "1" ? true : false }));
   });
 
-  v10.on('write', function(value) {
+  v5.on('write', function(value) {
     logging.debug('blynk v10', 'on write', value);
     var payload, color = [parseInt(value[0]) || 0, parseInt(value[1]) || 0, parseInt(value[2]) || 0, 0];
     if ((color[0] == 255) && (color[1] == 255) && (color[2] == 255)) {
@@ -107,7 +109,7 @@ function BlynkClient(token, client) {
         if (payload['temperature']) {
           v0.write(payload['temperature'][0]);
         }
-        
+
       } else if ((topic === "nodes/remote/humidity-sensor/i2c0-40") || (topic === "nodes/remote/humidity-sensor/i2c1-40") ) {
         if (payload['relative-humidity']) {
           v1.write(payload['relative-humidity'][0]);
@@ -119,6 +121,10 @@ function BlynkClient(token, client) {
       } else if (topic === "nodes/base/relay/-") {
         v4.write(payload['state'] ? "1" : "0");
 
+      } else if (topic === "plugin/led-strip/data/set/ok") {
+        if ('brightness' in payload) {
+          v2.write(Math.floor(payload['brightness'] / 255 * 1024))
+        }
       }
 
     } catch (error) {
