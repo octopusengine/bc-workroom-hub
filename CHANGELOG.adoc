@@ -7,6 +7,7 @@ Added::
 * Led-strip plugin confirm set data
 * Add publish errors in led-strip plugin
 * Add get data to led-strip plugin
+* Add recalculate config rules if change led-strip mode
 
 Changed::
 * Blynk plugin change brightness range to 0..1023

@@ -260,6 +260,18 @@ def mgtt_on_message(client, userdata, msg):
 
             userdata['mode'] = payload['mode']
             userdata['count'] = int(payload['count'])
+
+            rules = userdata['config']['rules']
+            for rule in rules:
+                if userdata['mode'] == 'rgb':
+                    if rule['color'][:3] == [0, 0, 0]:
+                        rule['color'] = [rule['color'][3]] * 4
+                else:
+                    if rule['color'] == [rule['color'][3]] * 4:
+                        rule['color'] = [0, 0, 0, rule['color'][3]]
+
+            client.publish('plugin/led-strip/config', json.dumps(userdata['config']), retain=True)
+
         except (TypeError, ValueError) as e:
             log.error('Invalid led-strip config: %s', e)
             client.publish(msg.topic + '/error', json.dumps({"msg": 'Invalid led-strip config: ' + str(e)}))
