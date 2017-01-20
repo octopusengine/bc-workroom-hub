@@ -172,7 +172,7 @@ def mgtt_on_connect(client, userdata, flags, rc):
     log.info('Connected to MQTT broker (code %s)', rc)
 
     for topic in ('plugin/led-strip/config',
-                  'plugin/led-strip/data/set',
+                  'plugin/led-strip/data/+',
                   'nodes/remote/+/+',
                   'nodes/base/+/+',
                   'nodes/base/led-strip/-/config/set',
@@ -249,6 +249,9 @@ def mgtt_on_message(client, userdata, msg):
             log.error('Invalid data: %s', e)
             client.publish(msg.topic + '/error', json.dumps({"msg": 'Invalid data: ' + str(e)}))
             return
+
+    elif msg.topic == 'plugin/led-strip/data/get':
+        client.publish('plugin/led-strip/data', json.dumps(userdata['data']))
 
     elif msg.topic == 'nodes/base/led-strip/-/config/set':
         try:

@@ -6,6 +6,7 @@ Added::
 * Add option --list to bc-workroom-gateway
 * Led-strip plugin confirm set data
 * Add publish errors in led-strip plugin
+* Add get data to led-strip plugin
 
 Changed::
 * Blynk plugin change brightness range to 0..1023
