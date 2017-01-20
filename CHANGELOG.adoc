@@ -11,6 +11,7 @@ Added::
 
 Changed::
 * Blynk plugin change brightness range to 0..1023
+* Blynk plugin change color range to [0..1023, 0..1023, 0..1023]
 
 Fixed::
 * Fix condition for the default rule in led-strip plugin
