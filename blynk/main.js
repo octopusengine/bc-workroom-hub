@@ -8,7 +8,7 @@
  * virtual pin 2 - set brightness range 0 .. 255
  * virtual pin 3 - light
  * virtual pin 4 - relay
- * virtual pin 10 - zeRGBa widget
+ * virtual pin 5 - zeRGBa widget
  *
  * Example config:
  * mosquitto_pub -t "plugin/blynk/config" -m '{"token":"your token id"}' -r
@@ -48,8 +48,10 @@ var client = mqtt.connect(brokerUrl);
 var blynkClient = null;
 var pluginTopic = "plugin/" + (options['--base-topic'] || DEFAULT_MQTT_TOPIC);
 
+
 function BlynkClient(token, client) {
   this.token = token;
+
   var blynk = new blynkLib.Blynk(token);
 
   var v0 = new blynk.VirtualPin(0);
@@ -57,21 +59,25 @@ function BlynkClient(token, client) {
   var v2 = new blynk.VirtualPin(2);
   var v3 = new blynk.VirtualPin(3);
   var v4 = new blynk.VirtualPin(4);
-  var v10 = new blynk.VirtualPin(10);
+  var v5 = new blynk.VirtualPin(5);
+
+  var topics = ["nodes/remote/+/+", "nodes/base/light/-", "plugin/led-strip/data/set/ok", "plugin/led-strip/data"];
 
   function addSubscibe() {
-    logging.debug("mqtt subscribe", "nodes/remote/+/+");
-    client.subscribe("nodes/remote/+/+");
-    logging.debug("mqtt subscribe", "nodes/base/light/-");
-    client.subscribe("nodes/base/light/-");
+    for(var topic of topics) {
+        logging.debug("mqtt subscribe", topic);
+        client.subscribe(topic);
+    }
 
     client.publish("nodes/base/light/-/get", "{}");
     client.publish("nodes/base/relay/-/get", "{}");
+    client.publish("plugin/led-strip/data/get", "{}");
   }
 
   v2.on('write', function(value) {
     logging.debug('blynk v2', 'on write', value[0]);
-    client.publish("plugin/led-strip/data/set", JSON.stringify({ "brightness": parseInt(value[0]) }));
+    var brightness = Math.floor(parseInt(value[0]) / 1023 * 255);
+    client.publish("plugin/led-strip/data/set", JSON.stringify({ "brightness": brightness}), {retain: true} );
   });
 
   v3.on('write', function(value) {
@@ -84,14 +90,18 @@ function BlynkClient(token, client) {
     client.publish("nodes/base/relay/-/set", JSON.stringify({ "state": value[0] == "1" ? true : false }));
   });
 
-  v10.on('write', function(value) {
-    logging.debug('blynk v10', 'on write', value);
-    var payload, color = [parseInt(value[0]) || 0, parseInt(value[1]) || 0, parseInt(value[2]) || 0, 0];
-    if ((color[0] == 255) && (color[1] == 255) && (color[2] == 255)) {
-      payload = {"state": "rules"};
-    } else {
-      payload = {"color": color, "state": "color"};
+  v5.on('write', function(value) {
+    logging.debug('blynk v5', 'on write', value);
+
+    var payload = {"state": "rules"};
+
+    if ((value[0] !== '1023') || (value[1] !== '1023') && (value[2] !== '1023')) {
+      var red = Math.floor((parseInt(value[0]) || 0) / 1023 * 255);
+      var green = Math.floor((parseInt(value[1]) || 0) / 1023 * 255);
+      var blue = Math.floor((parseInt(value[2]) || 0) / 1023 * 255);
+      payload = {"color": [red, green, blue, 0], "state": "color"};
     }
+
     client.publish("plugin/led-strip/data/set", JSON.stringify(payload));
   });
 
@@ -107,7 +117,7 @@ function BlynkClient(token, client) {
         if (payload['temperature']) {
           v0.write(payload['temperature'][0]);
         }
-        
+
       } else if ((topic === "nodes/remote/humidity-sensor/i2c0-40") || (topic === "nodes/remote/humidity-sensor/i2c1-40") ) {
         if (payload['relative-humidity']) {
           v1.write(payload['relative-humidity'][0]);
@@ -119,6 +129,16 @@ function BlynkClient(token, client) {
       } else if (topic === "nodes/base/relay/-") {
         v4.write(payload['state'] ? "1" : "0");
 
+      } else if ((topic === "plugin/led-strip/data/set/ok") || (topic === "plugin/led-strip/data")) {
+        if ('brightness' in payload) {
+          v2.write(Math.floor(payload['brightness'] / 255 * 1023))
+        }
+        if ('color' in payload) {
+          var red = Math.floor(payload['color'][0] / 255 * 1023);
+          var green = Math.floor(payload['color'][1] / 255 * 1023);
+          var blue = Math.floor(payload['color'][2] / 255 * 1023);
+          v5.write([red, green, blue]);
+        }
       }
 
     } catch (error) {
@@ -130,14 +150,19 @@ function BlynkClient(token, client) {
   client.on('message', clientMessage);
   client.on('connect', addSubscibe);
   blynk.on('connect', addSubscibe);
+  blynk.on('error', function(e){
+    logging.error('blynk', e);
+    client.publish(pluginTopic + "/config/error", JSON.stringify({msg:e}));
+  });
 
   this.destroy = function() {
     blynk.removeListener('connect', addSubscibe);
     clearInterval(blynk.timerConn);
     client.removeListener('connect', addSubscibe);
     client.removeListener('message', clientMessage);
-    client.unsubscribe(v0_topic);
-    client.unsubscribe(v1_topic);
+    for(var topic of topics) {
+        client.unsubscribe(topic);
+    }
     blynk.disconnect(false);
   }
 }

@@ -1,6 +1,21 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
+== link:{gh-url}/tree/v1.2.0[v1.2.0] (unreleased)
+Added::
+* Add option --list to bc-workroom-gateway
+* Led-strip plugin confirm set data
+* Add publish errors in led-strip plugin
+* Add get data to led-strip plugin
+* Add recalculate config rules if change led-strip mode
+
+Changed::
+* Blynk plugin change brightness range to 0..1023
+* Blynk plugin change color range to [0..1023, 0..1023, 0..1023]
+
+Fixed::
+* Fix condition for the default rule in led-strip plugin
+
 == link:{gh-url}/tree/v1.1.0[v1.1.0] (2017-01-12)
 Changed::
 * Change device symlink created by udev from `/dev/bcbridgehid%n` to `/dev/ft260hidraw%n`.

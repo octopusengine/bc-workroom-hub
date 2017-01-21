@@ -5,7 +5,6 @@ BigClown gateway between Base unit connected via USB and MQTT broker.
 
 Usage:
   bc-workroom-gateway [options]
-  bc-workroom-gateway --help
 
 Options:
   -D --debug                   Print debug messages.
@@ -13,20 +12,25 @@ Options:
   -h HOST --host=HOST          MQTT host to connect to (default is localhost).
   -p PORT --port=PORT          MQTT port to connect to (default is 1883).
   -t TOPIC --base-topic=TOPIC  Base MQTT topic (default is nodes).
+  --list                       Show list of available devices
   -v --version                 Print version.
   --help                       Show this message.
 """
 
-import fcntl
+import os
+import sys
 from logging import DEBUG, INFO
 import logging as log
 import json
-import os
-import sys
+import platform
 
 from docopt import docopt
 import paho.mqtt.client as mqtt
 from serial import Serial
+from serial.tools import list_ports
+
+if platform.system() == 'Linux':
+    import fcntl
 
 __version__ = '@@VERSION@@'
 
@@ -57,8 +61,15 @@ def main():
 
     log.basicConfig(level=DEBUG if opts.get('debug') else INFO, format=LOG_FORMAT)
 
+    if opts.get('list'):
+        for p in list_ports.comports():
+            print(p)
+        return
+
     serial = Serial(opts.get('device', DEFAULT_DEVICE), timeout=3.0)
-    fcntl.flock(serial.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    if platform.system() == 'Linux':
+        fcntl.flock(serial.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        log.debug("flock %d" % serial.fileno())
 
     serial.write(b'\n')
 
