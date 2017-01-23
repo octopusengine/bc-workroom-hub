@@ -74,7 +74,12 @@ replace_placeholders() {
 build_common() {
 	einfo 'Building debian package bc-common'
 
-	cd common
+	cp -r common "$BUILD_DIR"/
+	cd "$BUILD_DIR"/common
+
+	# Remove shebang, the script will be inserted into template.
+	sed_inplace 1d debian/postinst
+
 	# Note: --after-* overrides --after-* in _fpm. It's important to specify
 	# both post-install and post-upgrade!
 	_fpm --name bc-common \
