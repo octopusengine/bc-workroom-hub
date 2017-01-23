@@ -1,5 +1,6 @@
 = Linux Hub for Workroom project
-:gh-name: bigclownlabs/bc-workroom-hub
+:repo-name: bc-workroom-hub
+:gh-name: bigclownlabs/{repo-name}
 :gh-branch: master
 
 ifdef::env-github[]
@@ -23,6 +24,33 @@ wget https://repo.bigclown.com/debian/pubkey.gpg -O - | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install bc-workroom-led-strip bc-workroom-blynk
 ----
+
+
+== Setup development environment
+
+. Clone this repository:
+[source, sh, subs="+attributes"]
+git clone https://github.com/{gh-name}.git
+cd {repo-name}
+
+. Check system requirements and install Python and Node.js dependencies into directory `.venv`:
+
+    ./script/bootstrap
+
+. Source file `.envrc` into your shell (or manually add `$(pwd)/.env/bin` to your `PATH`):
+
+    source .envrc
+
+//-
+* Run linter:
+
+    ./script/test
+
+* Build debian packages:
+
+    ./script/build-deb
+
+These scripts should work on every up-to-date Unix system.
 
 
 == License
