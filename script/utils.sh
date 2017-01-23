@@ -33,7 +33,7 @@ pkgver_from_git() {
 
 	# If git HEAD is tagged as v*, then it prints name of the tag.
 	if desc="$(git describe --tags --exact-match --match 'v*' 2>/dev/null)"; then
-		echo "${desc#v}" | tr '[_-]' '~'
+		echo "${desc#v}" | sed 's/[_-]/~/g'
 	# Prints name of the last v* tag in the tree with suffix `-<n>-<abbrev>`.
 	elif desc="$(git describe --tags --match 'v*' 2>/dev/null)"; then
 		# Replace git suffix with ~dev.
