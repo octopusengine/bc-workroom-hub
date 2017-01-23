@@ -4,8 +4,8 @@
 # Builds debian packages.
 #
 # Environment variables:
-# 	PKG_VERSION : Version of the resulting packages. If not specified, then
-# 	              it's determined from git base on tags.
+# 	PKG_VERSION : Version of the resulting packages in Debian format (!).
+# 	              If not specified, then it's determined from git base on tags.
 # 	BUILD_DIR   : Directory for temporary build files (defaults to ./build).
 # 	TARGET_DIR  : Directory where to put built .deb packages.
 set -eu
@@ -22,9 +22,8 @@ LIB_DIR='/usr/lib/bigclown'
 BLYNK_DEST_DIR="$LIB_DIR/bc-workroom-blynk"
 
 if [ -z "${PKG_VERSION:-}" ]; then
-	PKG_VERSION="$(repo_version)" || {
+	PKG_VERSION="$(pkgver_from_git)" ||
 		die '$PKG_VERSION is not set and could not determine version from git!'
-	}
 fi
 
 
@@ -66,7 +65,10 @@ python_depends() {
 }
 
 replace_placeholders() {
-	sed_inplace "s/@@VERSION@@/$PKG_VERSION/g" "$1"
+	# Tilde as a suffix separator is used only for Debian packages...
+	local ver="$(echo $PKG_VERSION | tr '~' '-')"
+
+	sed_inplace "s/@@VERSION@@/$ver/g" "$1"
 }
 
 
@@ -143,7 +145,7 @@ build_blynk() {
 	ln -s "$BLYNK_DEST_DIR"/main.js "$tmp_dir"/bc-workroom-blynk
 
 	# Change version in package.json.
-	npm version "$PKG_VERSION"
+	npm version "$(echo "$PKG_VERSION" | tr '~' '-')"
 
 	rm -Rf node_modules
 	npm install --production
