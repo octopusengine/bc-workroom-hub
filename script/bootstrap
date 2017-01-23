@@ -51,7 +51,7 @@ fi
 . ./.envrc
 
 einfo 'Installing Python modules...'
-python3 -m pip install -r requirements.txt 2>&1 \
+python3 -m pip install -r requirements-dev.txt 2>&1 \
 	| sed -e '/^Requirement already satisfied/d' \
 		-e '/don.t match your environment$/d'
 
