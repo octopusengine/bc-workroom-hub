@@ -1,9 +1,9 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
-== link:{gh-url}/tree/v1.2.0[v1.2.0] (2017.01.21)
+== link:{gh-url}/tree/v1.2.0[v1.2.0] (2017-01-21)
 Added::
-* Add option --list to bc-workroom-gateway
+* Add option `--list` to bc-workroom-gateway
 * Led-strip plugin confirm set data
 * Add publish errors in led-strip plugin
 * Add get data to led-strip plugin
