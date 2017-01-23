@@ -164,7 +164,9 @@ def base_led_strip_set_pixels(client, userdata):
     if color:
         if userdata['mode'] == 'rgb':
             color = color[:3]
-        pixels = make_pixels(*color, brightness=userdata['data']['brightness'], count=userdata['count'])
+        pixels = make_pixels(*color,
+                             brightness=userdata['data']['brightness'],
+                             count=userdata['count'])
         client.publish('nodes/base/led-strip/-/set', json.dumps({'pixels': pixels}))
 
 
@@ -206,21 +208,25 @@ def mgtt_on_message(client, userdata, msg):
     elif msg.topic == 'plugin/led-strip/config/set' and 'brightness' in payload:
         msg.topic = 'plugin/led-strip/data/set'
 
-    if msg.topic == 'nodes/remote/thermometer/i2c0-49' or msg.topic == 'nodes/remote/thermometer/i2c1-49':
+    if msg.topic in ('nodes/remote/thermometer/i2c0-49',
+                     'nodes/remote/thermometer/i2c1-49'):
         try:
             userdata['temperature'] = float(payload['temperature'][0])
             userdata['temperature-ts'] = now
         except (TypeError, ValueError) as e:
             log.error('Invalid temperature: %s', e)
-            client.publish(msg.topic + '/-/error', json.dumps({"msg": 'Invalid temperature: ' + str(e)}))
+            client.publish(msg.topic + '/-/error',
+                           json.dumps({'msg': 'Invalid temperature: %s' % e}))
 
-    elif msg.topic == 'nodes/remote/humidity-sensor/i2c0-40' or msg.topic == 'nodes/remote/humidity-sensor/i2c1-40':
+    elif msg.topic in ('nodes/remote/humidity-sensor/i2c0-40',
+                       'nodes/remote/humidity-sensor/i2c1-40'):
         try:
             userdata['relative-humidity'] = float(payload['relative-humidity'][0])
             userdata['relative-humidity-ts'] = now
         except (TypeError, ValueError) as e:
             log.error('Invalid relative-humidity: %s', e)
-            client.publish(msg.topic + '/-/error', json.dumps({"msg": 'Invalid relative-humidity: ' + str(e)}))
+            client.publish(msg.topic + '/-/error',
+                           json.dumps({'msg': 'Invalid relative-humidity: %s' % e}))
 
     elif msg.topic == 'plugin/led-strip/data/set':
         try:
@@ -274,7 +280,8 @@ def mgtt_on_message(client, userdata, msg):
 
         except (TypeError, ValueError) as e:
             log.error('Invalid led-strip config: %s', e)
-            client.publish(msg.topic + '/error', json.dumps({"msg": 'Invalid led-strip config: ' + str(e)}))
+            client.publish(msg.topic + '/error',
+                           json.dumps({'msg': 'Invalid led-strip config: %s' % e}))
             return
 
     elif msg.topic == 'plugin/led-strip/config':
@@ -295,7 +302,11 @@ def main():
 
     log.basicConfig(level=DEBUG if opts.get('debug') else INFO, format=LOG_FORMAT)
 
-    client = mqtt.Client(userdata={'config': check_config(DEFAULT_PLUGIN_CONFIG), 'data': DEFAULT_PLUGIN_DATA, 'count': 144, 'mode': 'rgbw'})
+    client = mqtt.Client(userdata={
+        'config': check_config(DEFAULT_PLUGIN_CONFIG),
+        'data': DEFAULT_PLUGIN_DATA,
+        'count': 144,
+        'mode': 'rgbw'})
     client.on_connect = mgtt_on_connect
     client.on_message = mgtt_on_message
 
