@@ -75,8 +75,11 @@ build_common() {
 	einfo 'Building debian package bc-common'
 
 	cd common
+	# Note: --after-* overrides --after-* in _fpm. It's important to specify
+	# both post-install and post-upgrade!
 	_fpm --name bc-common \
 		--after-install debian/postinst \
+		--after-upgrade debian/postinst \
 		--depends adduser \
 		--depends udev \
 		--depends mosquitto \

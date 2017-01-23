@@ -1,14 +1,10 @@
 #!/bin/sh
 
-case "$1" in
-	configure)
-		echo "Creating user and group bigclown..."
+echo "Creating user and group bigclown..."
 
-		addgroup --quiet --system bigclown || true
-		adduser --quiet --system \
-			--home /dev/null \
-			--no-create-home \
-			--ingroup bigclown \
-			bigclown || true
-	;;
-esac
+addgroup --quiet --system bigclown || true
+adduser --quiet --system \
+	--home /dev/null \
+	--no-create-home \
+	--ingroup bigclown \
+	bigclown || true
