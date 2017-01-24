@@ -1,7 +1,7 @@
 = Change Log
 :gh-url: https://github.com/bigclownlabs/bc-workroom-hub
 
-== link:{gh-url}/tree/v1.2.2[v1.2.2] (unrelesed)
+== link:{gh-url}/tree/v1.2.2[v1.2.2] (2017-01-24)
 Fixed::
 * Fix gateway to not log every received line from serial port on INFO level.
 
