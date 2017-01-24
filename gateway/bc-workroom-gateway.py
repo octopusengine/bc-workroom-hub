@@ -87,7 +87,7 @@ def main():
     while True:
         line = serial.readline()
         if line:
-            log.info(line)
+            log.debug(line)
             try:
                 talk = json.loads(line.decode())
                 mqttc.publish(base_topic + talk[0], json.dumps(talk[1]), qos=1)
